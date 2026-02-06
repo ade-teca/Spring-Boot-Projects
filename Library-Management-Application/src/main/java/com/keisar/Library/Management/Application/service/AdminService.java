@@ -5,6 +5,7 @@ import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,6 +14,7 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public User updateUser(Long id, RegisterUserDTO registerUserDTO) {
         User existingUser = userRepository.findById(id)
@@ -21,6 +23,11 @@ public class AdminService {
         modelMapper.map(registerUserDTO, existingUser);
 
         existingUser.setId(id);
+
+        if (registerUserDTO.getPassword() != null && !registerUserDTO.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(registerUserDTO.getPassword()));
+        }
+
         return userRepository.save(existingUser);
     }
 
