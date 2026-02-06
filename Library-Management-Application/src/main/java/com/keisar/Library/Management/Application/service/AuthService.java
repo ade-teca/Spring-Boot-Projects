@@ -25,12 +25,14 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
 
-    public void registerNormalUser(RegisterUserDTO registerUserDTO) {
+    public User registerNormalUser(RegisterUserDTO registerUserDTO) {
         saveUser(registerUserDTO, Set.of("ROLE_USER"));
+        return modelMapper.map(registerUserDTO, User.class);
     }
 
-    public void registerAdminUser(RegisterUserDTO registerUserDTO) {
+    public User registerAdminUser(RegisterUserDTO registerUserDTO) {
         saveUser(registerUserDTO, Set.of("ROLE_USER", "ROLE_ADMIN"));
+        return modelMapper.map(registerUserDTO, User.class);
     }
 
     private void saveUser(RegisterUserDTO dto, Set<String> roles) {
