@@ -47,8 +47,22 @@ public class IssueRecordService {
     }
 
 
-    public Boolean isBookAvailabe(Book book) {
-        
+    @Transactional
+    public IssueRecordResponseDTO returnTheBook(Long issueId) {
+        IssueRecord issueRecord = issueRecordRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue Record Not Found"));
+
+        if (issueRecord.isReturned()) {
+            throw new RuntimeException("Book already returned");
+        }
+
+        Book book = issueRecord.getBook();
+        book.setQuantity(book.getQuantity() + 1);
+
+        issueRecord.setReturnDate(LocalDateTime.now());
+        issueRecord.setReturned(true);
+
+        return modelMapper.map(issueRecordRepository.save(issueRecord), IssueRecordResponseDTO.class);
     }
 
 
