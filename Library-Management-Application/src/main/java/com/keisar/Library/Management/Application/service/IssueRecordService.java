@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Service
@@ -63,6 +64,17 @@ public class IssueRecordService {
         issueRecord.setReturned(true);
 
         return modelMapper.map(issueRecordRepository.save(issueRecord), IssueRecordResponseDTO.class);
+    }
+
+    public List<IssueRecordResponseDTO> getUserHistory(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("User not found");
+        }
+
+        return issueRecordRepository.findAllByUserIdOrderByIssueDateDesc(userId)
+                .stream()
+                .map(record -> modelMapper.map(record, IssueRecordResponseDTO.class))
+                .toList();
     }
 
 
