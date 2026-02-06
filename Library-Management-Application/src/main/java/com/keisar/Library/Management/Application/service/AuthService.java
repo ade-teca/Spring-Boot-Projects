@@ -8,6 +8,8 @@ import com.keisar.Library.Management.Application.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
+    private final JwtService jwtService;
 
     public void registerNormalUser(RegisterUserDTO registerUserDTO) {
         saveUser(registerUserDTO, Set.of("ROLE_USER"));
@@ -41,4 +44,19 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    public LoginResponse login(LoginUserDTO loginUserDTO) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginUserDTO.getEmail(),
+                        loginUserDTO.getPassword()
+                )
+        );
+
+        User user = userRepository.findByEmail(loginUserDTO.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found after authentication"));
+
+        String token = jwtService.generateToken(user);
+
+        return new LoginResponse(token, user.getEmail());
+    }
 }
