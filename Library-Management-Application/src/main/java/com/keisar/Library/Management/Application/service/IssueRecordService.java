@@ -30,22 +30,41 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecordResponseDTO issueTheBook(IssueRecordRequestDTO issueDTO) {
-        Book book = bookRepository.findById(issueDTO.getBookId()).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        User user = userRepository.findById(issueDTO.getUserId()).orElseThrow(()-> new ResourceNotFoundException("User not found"));;
+        // 1. Busca as entidades (Dica: alterei a mensagem do erro do Book)
+        Book book = bookRepository.findById(issueDTO.getBookId())
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        User user = userRepository.findById(issueDTO.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if(!book.isAvailable()){
+        // 2. Validação de negócio
+        if (book.getQuantity() <= 0) {
             throw new RuntimeException("Book Not Available");
         }
-        book.setQuantity(book.getQuantity()-1);
 
+        // 3. Atualiza estoque
+        book.setQuantity(book.getQuantity() - 1);
+        bookRepository.save(book); // Garante a persistência da alteração
+
+        // 4. Cria o registro
         IssueRecord issueRecord = new IssueRecord();
-
         issueRecord.setBook(book);
         issueRecord.setUser(user);
         issueRecord.setIssueDate(LocalDateTime.now());
         issueRecord.setDueDate(issueRecord.getIssueDate().plusDays(7));
 
-        return modelMapper.map(issueRecordRepository.save(issueRecord), IssueRecordResponseDTO.class);
+        IssueRecord savedRecord = issueRecordRepository.save(issueRecord);
+
+        // 5. Mapeamento Manual (Seguro contra NULLs)
+        IssueRecordResponseDTO response = new IssueRecordResponseDTO();
+        response.setId(savedRecord.getId());
+        response.setUserName(user.getUsername());
+        response.setBookTitle(book.getTitle());
+        response.setBookAuthor(book.getAuthor());
+        response.setIssueDate(savedRecord.getIssueDate());
+        response.setDueDate(savedRecord.getDueDate());
+        response.setReturned(savedRecord.isReturned());
+
+        return response;
     }
 
 
