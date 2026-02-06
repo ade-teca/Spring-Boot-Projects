@@ -3,7 +3,9 @@ package com.keisar.Library.Management.Application.controller;
 import com.keisar.Library.Management.Application.dto.request.BookRequestDTO;
 import com.keisar.Library.Management.Application.dto.response.BookResponseDTO;
 import com.keisar.Library.Management.Application.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,37 +19,40 @@ public class BookController {
 
     private final BookService bookService;
 
+    // Acesso Público
     @GetMapping
-    public ResponseEntity<List<BookResponseDTO>> getAllBooks() {
-        return ResponseEntity.ok(bookService.getAllBooks());
+    public List<BookResponseDTO> getAllBooks() {
+        return bookService.getAllBooks();
     }
 
-    @GetMapping("/search/{term}")
-    public ResponseEntity<List<BookResponseDTO>> searchBooks(@PathVariable String term) {
-        return ResponseEntity.ok(bookService.searchBooks(term));
+    @GetMapping("/search")
+    public List<BookResponseDTO> searchBooks(@RequestParam String term) {
+        return bookService.searchBooks(term);
     }
 
-    @GetMapping("/id/{id}")
-    public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
-        return ResponseEntity.ok(bookService.getBookById(id));
+    @GetMapping("/{id}")
+    public BookResponseDTO getBookById(@PathVariable Long id) {
+        return bookService.getBookById(id);
     }
 
+    // Acesso Restrito a ADMIN
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BookResponseDTO> createBook(@RequestBody BookRequestDTO bookRequestDTO) {
-        return ResponseEntity.status(201).body(bookService.createBook(bookRequestDTO));
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookResponseDTO createBook(@Valid @RequestBody BookRequestDTO bookRequestDTO) {
+        return bookService.createBook(bookRequestDTO);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @RequestBody BookRequestDTO bookRequestDTO) {
-        return ResponseEntity.ok(bookService.updateBook(id, bookRequestDTO));
+    public BookResponseDTO updateBook(@PathVariable Long id, @Valid @RequestBody BookRequestDTO bookRequestDTO) {
+        return bookService.updateBook(id, bookRequestDTO);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteBook(@PathVariable Long id) {
         bookService.deleteBookById(id);
-        return ResponseEntity.noContent().build();
     }
 }

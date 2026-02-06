@@ -6,6 +6,7 @@ import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.service.AdminService;
 import com.keisar.Library.Management.Application.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,12 +23,12 @@ public class AdminController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerAdmin(@RequestBody RegisterUserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> registerAdmin(@Valid @RequestBody RegisterUserDTO userDTO) {
         return ResponseEntity.status(201).body(authService.registerAdminUser(userDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody RegisterUserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id,@Valid @RequestBody RegisterUserDTO userDTO) {
         return ResponseEntity.ok(adminService.updateUser(id, userDTO));
     }
 

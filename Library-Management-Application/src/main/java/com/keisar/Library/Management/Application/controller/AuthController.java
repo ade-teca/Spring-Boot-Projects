@@ -6,6 +6,7 @@ import com.keisar.Library.Management.Application.dto.response.LoginResponse;
 import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +19,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerNormalUser(@RequestBody RegisterUserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> registerNormalUser(@Valid @RequestBody RegisterUserDTO userDTO) {
         return ResponseEntity.status(201).body(authService.registerNormalUser(userDTO));
     }
 
-    @PostMapping
-    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginUserDTO loginUserDTO) {
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginUserDTO loginUserDTO) {
         return ResponseEntity.ok(authService.login(loginUserDTO));
     }
 }
