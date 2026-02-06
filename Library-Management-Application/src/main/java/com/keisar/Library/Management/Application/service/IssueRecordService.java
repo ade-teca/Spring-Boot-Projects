@@ -70,20 +70,35 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecordResponseDTO returnTheBook(Long issueId) {
-        IssueRecord issueRecord = issueRecordRepository.findById(issueId)
-                .orElseThrow(() -> new ResourceNotFoundException("Issue Record Not Found"));
+        IssueRecord record = issueRecordRepository.findById(issueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Issue record not found"));
 
-        if (issueRecord.isReturned()) {
-            throw new RuntimeException("Book already returned");
+        if (record.isReturned()) {
+            throw new RuntimeException("Book has already been returned");
         }
 
-        Book book = issueRecord.getBook();
+        // Atualiza status
+        record.setReturned(true);
+        record.setReturnDate(LocalDateTime.now());
+
+        // Atualiza estoque
+        Book book = record.getBook();
         book.setQuantity(book.getQuantity() + 1);
 
-        issueRecord.setReturnDate(LocalDateTime.now());
-        issueRecord.setReturned(true);
+        IssueRecord savedRecord = issueRecordRepository.save(record);
 
-        return modelMapper.map(issueRecordRepository.save(issueRecord), IssueRecordResponseDTO.class);
+        // Mapeamento Manual para garantir que os nomes apareçam no JSON
+        IssueRecordResponseDTO response = new IssueRecordResponseDTO();
+        response.setId(savedRecord.getId());
+        response.setUserName(record.getUser().getUsername()); // Pega do objeto carregado
+        response.setBookTitle(book.getTitle());
+        response.setBookAuthor(book.getAuthor());
+        response.setIssueDate(savedRecord.getIssueDate());
+        response.setDueDate(savedRecord.getDueDate());
+        response.setReturnDate(savedRecord.getReturnDate());
+        response.setReturned(true);
+
+        return response;
     }
 
     public List<IssueRecordResponseDTO> getUserHistory(Long userId) {
