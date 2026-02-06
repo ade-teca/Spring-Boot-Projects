@@ -1,6 +1,7 @@
 package com.keisar.Library.Management.Application.service;
 
 import com.keisar.Library.Management.Application.dto.request.RegisterUserDTO;
+import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +17,19 @@ public class AdminService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public User updateUser(Long id, RegisterUserDTO registerUserDTO) {
+    public UserResponseDTO updateUser(Long id, RegisterUserDTO registerUserDTO) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         modelMapper.map(registerUserDTO, existingUser);
-
         existingUser.setId(id);
 
         if (registerUserDTO.getPassword() != null && !registerUserDTO.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(registerUserDTO.getPassword()));
         }
 
-        return userRepository.save(existingUser);
+        User updatedUser = userRepository.save(existingUser);
+        return modelMapper.map(updatedUser, UserResponseDTO.class);
     }
 
     public void deleteUser(Long id) {

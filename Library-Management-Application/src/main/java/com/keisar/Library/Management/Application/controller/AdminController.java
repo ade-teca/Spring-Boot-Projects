@@ -2,6 +2,7 @@ package com.keisar.Library.Management.Application.controller;
 
 
 import com.keisar.Library.Management.Application.dto.request.RegisterUserDTO;
+import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.service.AdminService;
 import com.keisar.Library.Management.Application.service.AuthService;
@@ -26,7 +27,7 @@ public class AdminController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody RegisterUserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody RegisterUserDTO userDTO) {
         return ResponseEntity.ok(adminService.updateUser(id, userDTO));
     }
 

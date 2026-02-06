@@ -3,6 +3,7 @@ package com.keisar.Library.Management.Application.service;
 import com.keisar.Library.Management.Application.dto.request.LoginUserDTO;
 import com.keisar.Library.Management.Application.dto.request.RegisterUserDTO;
 import com.keisar.Library.Management.Application.dto.response.LoginResponse;
+import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +26,9 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
 
-    public User registerNormalUser(RegisterUserDTO registerUserDTO) {
-        saveUser(registerUserDTO, Set.of("ROLE_USER"));
-        return modelMapper.map(registerUserDTO, User.class);
+    public UserResponseDTO registerNormalUser(RegisterUserDTO registerUserDTO) {
+        User savedUser = saveUser(registerUserDTO, Set.of("ROLE_USER"));
+        return modelMapper.map(savedUser, UserResponseDTO.class);
     }
 
     public User registerAdminUser(RegisterUserDTO registerUserDTO) {
@@ -35,7 +36,7 @@ public class AuthService {
         return modelMapper.map(registerUserDTO, User.class);
     }
 
-    private void saveUser(RegisterUserDTO dto, Set<String> roles) {
+    private User saveUser(RegisterUserDTO dto, Set<String> roles) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email already in use");
         }
@@ -44,6 +45,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRoles(roles);
         userRepository.save(user);
+        return user;
     }
 
     public LoginResponse login(LoginUserDTO loginUserDTO) {
