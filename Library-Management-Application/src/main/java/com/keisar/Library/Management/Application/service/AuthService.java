@@ -6,6 +6,7 @@ import com.keisar.Library.Management.Application.dto.response.LoginResponse;
 import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.repository.UserRepository;
+import com.keisar.Library.Management.Application.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;

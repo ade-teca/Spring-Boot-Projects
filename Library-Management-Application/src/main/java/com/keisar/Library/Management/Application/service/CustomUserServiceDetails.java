@@ -1,4 +1,4 @@
-package com.keisar.Library.Management.Application.security;
+package com.keisar.Library.Management.Application.service;
 
 import com.keisar.Library.Management.Application.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
