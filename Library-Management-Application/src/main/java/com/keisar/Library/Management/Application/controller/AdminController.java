@@ -22,7 +22,7 @@ public class AdminController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerAdmin(@RequestBody RegisterUserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> registerAdmin(@RequestBody RegisterUserDTO userDTO) {
         return ResponseEntity.status(201).body(authService.registerAdminUser(userDTO));
     }
 

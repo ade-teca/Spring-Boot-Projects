@@ -32,9 +32,9 @@ public class AuthService {
         return modelMapper.map(savedUser, UserResponseDTO.class);
     }
 
-    public User registerAdminUser(RegisterUserDTO registerUserDTO) {
+    public UserResponseDTO registerAdminUser(RegisterUserDTO registerUserDTO) {
         saveUser(registerUserDTO, Set.of("ROLE_USER", "ROLE_ADMIN"));
-        return modelMapper.map(registerUserDTO, User.class);
+        return modelMapper.map(registerUserDTO, UserResponseDTO.class);
     }
 
     private User saveUser(RegisterUserDTO dto, Set<String> roles) {
@@ -50,6 +50,7 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginUserDTO loginUserDTO) {
+        // 1. Autentica
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginUserDTO.getEmail(),
@@ -57,9 +58,10 @@ public class AuthService {
                 )
         );
 
-        User user = userRepository.findByEmail(loginUserDTO.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found after authentication"));
+        // 2. O 'principal' após a autenticação já contém o UserDetails (
+        User user = (User) authentication.getPrincipal();
 
+        // 3. Gera o token
         String token = jwtService.generateToken(user);
 
         return new LoginResponse(token, user.getEmail());
