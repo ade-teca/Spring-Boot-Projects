@@ -3,6 +3,7 @@ package com.keisar.Library.Management.Application.service;
 
 import com.keisar.Library.Management.Application.dto.request.BookRequestDTO;
 import com.keisar.Library.Management.Application.dto.response.BookResponseDTO;
+import com.keisar.Library.Management.Application.exception.ResourceNotFoundException;
 import com.keisar.Library.Management.Application.model.Book;
 import com.keisar.Library.Management.Application.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,19 +32,19 @@ public class BookService {
     }
 
     public BookResponseDTO getBookById(Long bookId){
-        Book book = bookRepository.findById(bookId).orElseThrow(()-> new RuntimeException("Book Not Found"));
+        Book book = bookRepository.findById(bookId).orElseThrow(()-> new ResourceNotFoundException("Book not found"));
         return modelMapper.map(book, BookResponseDTO.class);
     }
 
     public BookResponseDTO updateBook(Long id,BookRequestDTO bookRequestDTO){
-        Book book = bookRepository.findById(id).orElseThrow(()-> new RuntimeException("Book Not Found"));
+        Book book = bookRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Book not found"));
         modelMapper.map(bookRequestDTO,book);
         return modelMapper.map(bookRepository.save(book), BookResponseDTO.class);
     }
 
     public void deleteBookById(Long bookId){
         if(!bookRepository.existsById(bookId)){
-            throw new RuntimeException("Book Not Found");
+            throw new ResourceNotFoundException("Book not found");
         }
         bookRepository.deleteById(bookId);
     }

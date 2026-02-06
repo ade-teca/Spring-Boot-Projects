@@ -2,6 +2,7 @@ package com.keisar.Library.Management.Application.service;
 
 import com.keisar.Library.Management.Application.dto.request.RegisterUserDTO;
 import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
+import com.keisar.Library.Management.Application.exception.ResourceNotFoundException;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class AdminService {
 
     public UserResponseDTO updateUser(Long id, RegisterUserDTO registerUserDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         modelMapper.map(registerUserDTO, existingUser);
         existingUser.setId(id);
@@ -34,7 +35,7 @@ public class AdminService {
 
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
         userRepository.deleteById(id);
     }

@@ -2,6 +2,7 @@ package com.keisar.Library.Management.Application.service;
 
 import com.keisar.Library.Management.Application.dto.request.IssueRecordRequestDTO;
 import com.keisar.Library.Management.Application.dto.response.IssueRecordResponseDTO;
+import com.keisar.Library.Management.Application.exception.ResourceNotFoundException;
 import com.keisar.Library.Management.Application.model.Book;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.model.IssueRecord;
@@ -29,8 +30,8 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecordResponseDTO issueTheBook(IssueRecordRequestDTO issueDTO) {
-        Book book = bookRepository.findById(issueDTO.getBookId()).orElseThrow(()-> new RuntimeException("Book Not Found"));
-        User user = userRepository.findById(issueDTO.getUserId()).orElseThrow(()-> new RuntimeException("user not found"));;
+        Book book = bookRepository.findById(issueDTO.getBookId()).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(issueDTO.getUserId()).orElseThrow(()-> new ResourceNotFoundException("User not found"));;
 
         if(!book.isAvailable()){
             throw new RuntimeException("Book Not Available");
@@ -51,7 +52,7 @@ public class IssueRecordService {
     @Transactional
     public IssueRecordResponseDTO returnTheBook(Long issueId) {
         IssueRecord issueRecord = issueRecordRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue Record Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Issue Record Not Found"));
 
         if (issueRecord.isReturned()) {
             throw new RuntimeException("Book already returned");
@@ -68,7 +69,7 @@ public class IssueRecordService {
 
     public List<IssueRecordResponseDTO> getUserHistory(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
 
         return issueRecordRepository.findAllByUserIdOrderByIssueDateDesc(userId)

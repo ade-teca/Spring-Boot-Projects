@@ -4,6 +4,7 @@ import com.keisar.Library.Management.Application.dto.request.LoginUserDTO;
 import com.keisar.Library.Management.Application.dto.request.RegisterUserDTO;
 import com.keisar.Library.Management.Application.dto.response.LoginResponse;
 import com.keisar.Library.Management.Application.dto.response.UserResponseDTO;
+import com.keisar.Library.Management.Application.exception.EmailAlreadyExistsException;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.repository.UserRepository;
 import com.keisar.Library.Management.Application.security.JwtService;
@@ -39,7 +40,7 @@ public class AuthService {
 
     private User saveUser(RegisterUserDTO dto, Set<String> roles) {
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new EmailAlreadyExistsException("Email already in use");
         }
 
         User user = modelMapper.map(dto, User.class);
