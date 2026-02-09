@@ -2,7 +2,6 @@ package com.keisar.Library.Management.Application.service;
 
 import com.keisar.Library.Management.Application.dto.request.IssueRecordRequestDTO;
 import com.keisar.Library.Management.Application.dto.response.IssueRecordResponseDTO;
-import com.keisar.Library.Management.Application.exception.ResourceNotFoundException;
 import com.keisar.Library.Management.Application.model.Book;
 import com.keisar.Library.Management.Application.model.User;
 import com.keisar.Library.Management.Application.model.IssueRecord;
@@ -30,23 +29,16 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecordResponseDTO issueTheBook(IssueRecordRequestDTO issueDTO) {
-        // 1. Busca as entidades (Dica: alterei a mensagem do erro do Book)
-        Book book = bookRepository.findById(issueDTO.getBookId())
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
-        User user = userRepository.findById(issueDTO.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Book book = bookRepository.findById(issueDTO.getBookId()).orElseThrow(()-> new RuntimeException("Book Not Found"));
+        User user = userRepository.findById(issueDTO.getUserId()).orElseThrow(()-> new RuntimeException("user not found"));;
 
-        // 2. Validação de negócio
-        if (book.getQuantity() <= 0) {
+        if(!book.isAvailable()){
             throw new RuntimeException("Book Not Available");
         }
+        book.setQuantity(book.getQuantity()-1);
 
-        // 3. Atualiza estoque
-        book.setQuantity(book.getQuantity() - 1);
-        bookRepository.save(book); // Garante a persistência da alteração
-
-        // 4. Cria o registro
         IssueRecord issueRecord = new IssueRecord();
+
         issueRecord.setBook(book);
         issueRecord.setUser(user);
         issueRecord.setIssueDate(LocalDateTime.now());
@@ -54,11 +46,11 @@ public class IssueRecordService {
 
         IssueRecord savedRecord = issueRecordRepository.save(issueRecord);
 
-        // 5. Mapeamento Manual (Seguro contra NULLs)
+        // Mapeamento Manual (Totalmente seguro)
         IssueRecordResponseDTO response = new IssueRecordResponseDTO();
         response.setId(savedRecord.getId());
-        response.setUserName(user.getUsername());
-        response.setBookTitle(book.getTitle());
+        response.setUserName(user.getUsername()); // Você já tem o objeto 'user'
+        response.setBookTitle(book.getTitle());   // Você já tem o objeto 'book'
         response.setBookAuthor(book.getAuthor());
         response.setIssueDate(savedRecord.getIssueDate());
         response.setDueDate(savedRecord.getDueDate());
@@ -70,45 +62,54 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecordResponseDTO returnTheBook(Long issueId) {
-        IssueRecord record = issueRecordRepository.findById(issueId)
-                .orElseThrow(() -> new ResourceNotFoundException("Issue record not found"));
+        IssueRecord issueRecord = issueRecordRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue Record Not Found"));
 
-        if (record.isReturned()) {
-            throw new RuntimeException("Book has already been returned");
+        if (issueRecord.isReturned()) {
+            throw new RuntimeException("Book already returned");
         }
 
-        // Atualiza status
-        record.setReturned(true);
-        record.setReturnDate(LocalDateTime.now());
-
-        // Atualiza estoque
-        Book book = record.getBook();
+        Book book = issueRecord.getBook();
         book.setQuantity(book.getQuantity() + 1);
 
-        IssueRecord savedRecord = issueRecordRepository.save(record);
+        issueRecord.setReturnDate(LocalDateTime.now());
+        issueRecord.setReturned(true);
 
-        // Mapeamento Manual para garantir que os nomes apareçam no JSON
+        IssueRecord savedRecord = issueRecordRepository.save(issueRecord);
+
+        // Mapeamento Manual para garantir que os nomes fiquem corretos
         IssueRecordResponseDTO response = new IssueRecordResponseDTO();
         response.setId(savedRecord.getId());
-        response.setUserName(record.getUser().getUsername()); // Pega do objeto carregado
-        response.setBookTitle(book.getTitle());
-        response.setBookAuthor(book.getAuthor());
+        response.setUserName(savedRecord.getUser().getUsername());
+        response.setBookTitle(savedRecord.getBook().getTitle());
+        response.setBookAuthor(savedRecord.getBook().getAuthor());
         response.setIssueDate(savedRecord.getIssueDate());
         response.setDueDate(savedRecord.getDueDate());
-        response.setReturnDate(savedRecord.getReturnDate());
-        response.setReturned(true);
+        response.setReturnDate(savedRecord.getReturnDate()); // Agora com data de retorno
+        response.setReturned(savedRecord.isReturned());
 
         return response;
     }
 
     public List<IssueRecordResponseDTO> getUserHistory(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
+            throw new RuntimeException("User not found");
         }
 
         return issueRecordRepository.findAllByUserIdOrderByIssueDateDesc(userId)
                 .stream()
-                .map(record -> modelMapper.map(record, IssueRecordResponseDTO.class))
+                .map(record -> {
+                    IssueRecordResponseDTO dto = new IssueRecordResponseDTO();
+                    dto.setId(record.getId());
+                    dto.setUserName(record.getUser().getUsername());
+                    dto.setBookTitle(record.getBook().getTitle());
+                    dto.setBookAuthor(record.getBook().getAuthor());
+                    dto.setIssueDate(record.getIssueDate());
+                    dto.setDueDate(record.getDueDate());
+                    dto.setReturnDate(record.getReturnDate());
+                    dto.setReturned(record.isReturned());
+                    return dto;
+                })
                 .toList();
     }
 
