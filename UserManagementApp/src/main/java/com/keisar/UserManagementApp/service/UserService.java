@@ -29,8 +29,9 @@ public class UserService {
         return modelMapper.map(user, UserDTO.class);
     }
 
-    public UserDTO getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
+    public UserDTO getUserByIdentifier(String identifier) {
+        User user = userRepository.findByUsernameOrEmail(identifier, identifier)
+                .orElseThrow(() -> new RuntimeException("User not found with identifier: " + identifier));
         return modelMapper.map(user, UserDTO.class);
     }
 
